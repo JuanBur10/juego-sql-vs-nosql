@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Juego: SQL vs. NoSQL</title>
+<style>
+:root{--bg:#f1f4f9;--card:#fff;--tx:#14213d;--mut:#5b6679;--sql:#1d6fd6;--no:#d9822b;--ok:#1f9d55;--bad:#d64545;--bd:#d7deea;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1624;--card:#18223a;--tx:#eef2fa;--mut:#a3aec4;--bd:#2c3957}}
+:root[data-theme="dark"]{--bg:#0f1624;--card:#18223a;--tx:#eef2fa;--mut:#a3aec4;--bd:#2c3957}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font-family:system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.45}
+main{max-width:680px;margin:0 auto;padding:20px 16px}
+h1{font-size:1.5rem;margin:0}.s{color:var(--mut);margin:4px 0 12px}
+.top{display:flex;justify-content:space-between;font-weight:600;margin-bottom:8px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:18px;margin-bottom:14px}
+.tag{font:600 .75rem ui-monospace,monospace;color:var(--mut);text-transform:uppercase;letter-spacing:.05em}
+.q{font-size:1.15rem;font-weight:600;margin:8px 0}
+code{font-family:ui-monospace,Consolas,monospace;font-size:.88rem}
+.row{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap}
+button{font:inherit;font-weight:600;border:1px solid var(--bd);border-radius:10px;padding:12px;background:var(--card);color:var(--tx);cursor:pointer}
+.big{flex:1;color:#fff;border:0}.bs{background:var(--sql)}.bn{background:var(--no)}.bx{background:var(--tx);color:var(--bg);border:0}
+button:disabled{opacity:.55;cursor:default}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:10px}.cols h3{margin:0 0 8px;font-size:.95rem}
+.cols button{display:block;width:100%;margin-bottom:8px;text-align:left;font-weight:500;font-size:.9rem}
+.cols .sq h3{color:var(--sql)}.cols .nq h3{color:var(--no)}
+.sel{outline:3px solid var(--sql)}.done{background:var(--ok)!important;color:#fff!important;border-color:var(--ok)}
+.shake{animation:sh .3s;border-color:var(--bad)}@keyframes sh{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+.opt{display:block;width:100%;margin-bottom:8px;text-align:left;font-weight:500}
+.opt.good{background:var(--ok);color:#fff;border-color:var(--ok)}.opt.wrong{background:var(--bad);color:#fff;border-color:var(--bad)}
+.fb{font-weight:600;min-height:1.4em;margin-top:8px}.ok{color:var(--ok)}.bad{color:var(--bad)}
+.bar{height:6px;background:var(--bd);border-radius:3px;overflow:hidden;margin-bottom:14px}.bar i{display:block;height:100%;background:var(--sql);width:0;transition:width .3s}
+table{width:100%;border-collapse:collapse;font-size:.85rem}th,td{text-align:left;padding:7px;border-bottom:1px solid var(--bd);vertical-align:top}.wrap{overflow-x:auto}
+@media(prefers-reduced-motion:reduce){.shake{animation:none}}
+</style></head><body><main>
+<h1>SQL vs. NoSQL: ¿cómo se relacionan?</h1>
+<p class="s">3 rondas: une equivalencias, clasifica características y traduce consultas.</p>
+<div class="top"><span id="rd"></span><span id="pt"></span></div>
+<div class="bar"><i id="pb"></i></div>
+<div id="st"></div>
+<script>
+var $=function(x){return document.getElementById(x)},sh=function(a){return a.slice().sort(function(){return Math.random()-.5})};
+var pts,round;
+// Ronda 1: equivalencias SQL <-> NoSQL (MongoDB)
+var P=[["Tabla","Colección"],["Fila (registro)","Documento"],["Columna","Campo"],["PRIMARY KEY (id)","_id"],["JOIN entre tablas","Documentos embebidos / $lookup"],["SELECT ... WHERE","find({ ... })"],["INSERT INTO","insertOne()"],["ACID","BASE"]];
+// Ronda 2: clasificar
+var C=[["Modelo de datos","Tablas y filas",0],["Modelo de datos","Documentos, clave-valor, columnas y grafos",1],["Esquema","Rígido: se define antes de guardar datos",0],["Esquema","Flexible: cada registro puede tener campos distintos",1],["Escalabilidad","Vertical: un servidor más potente",0],["Escalabilidad","Horizontal: se agregan más servidores",1],["Garantías","Propiedades ACID (ej. transferencia bancaria)",0],["Garantías","Modelo BASE (ej. contador de me gusta)",1],["Lenguaje","Lenguaje estándar SQL",0],["Lenguaje","API/lenguaje propio de cada motor",1],["Casos y motores","MySQL, PostgreSQL u Oracle en facturación",0],["Casos y motores","MongoDB, Redis o Cassandra en redes sociales",1]];
+// Ronda 3: traducir
+var T=[["SELECT * FROM libros WHERE anio > 1950;",'db.libros.find({anio:{$gt:1950}})',['db.libros.select(anio > 1950)','GET libros WHERE anio > 1950']],
+["INSERT INTO libros (titulo) VALUES ('Dune');",'db.libros.insertOne({titulo:"Dune"})',['db.libros.add(titulo = "Dune")','INSERT libros {titulo:"Dune"} NOW']],
+["DELETE FROM libros WHERE id = 5;",'db.libros.deleteOne({_id:5})',['db.libros.drop({_id:5})','db.libros.remove_row(5)']],
+["UPDATE libros SET anio = 2000 WHERE id = 5;",'db.libros.updateOne({_id:5},{$set:{anio:2000}})',['db.libros.set(anio = 2000, id = 5)','db.libros.updateTable({_id:5},2000)']]];
+function head(){$("rd").textContent="Ronda "+round+" de 3";$("pt").textContent=pts+" pts"}
+function start(){pts=0;round=1;r1()}
+function r1(){round=1;head();$("pb").style.width="0";var m=0,sel=null,L=sh(P),R=sh(P);
+ $("st").innerHTML='<div class="card"><div class="tag">Ronda 1 · Une las equivalencias</div><div class="q">Toca un concepto SQL y luego su equivalente en NoSQL (MongoDB).</div><div class="cols"><div class="sq"><h3>SQL</h3><div id="L"></div></div><div class="nq"><h3>NoSQL</h3><div id="R"></div></div></div><div class="fb" id="fb"></div></div>';
+ function mk(id,arr,i){arr.forEach(function(p){var b=document.createElement("button");b.textContent=p[i];b.onclick=function(){click(b,p,i)};$(id).appendChild(b)})}
+ var bs={};
+ function click(b,p,i){if(b.classList.contains("done"))return;
+  if(i===0){if(sel)sel.b.classList.remove("sel");sel={b:b,p:p};b.classList.add("sel");return}
+  if(!sel){$("fb").textContent="Primero elige un concepto SQL.";$("fb").className="fb bad";return}
+  if(sel.p===p){sel.b.classList.remove("sel");sel.b.classList.add("done");b.classList.add("done");pts+=10;m++;sel=null;$("fb").textContent="¡Correcto!";$("fb").className="fb ok";head();$("pb").style.width=(m/P.length*33)+"%";
+   if(m===P.length)setTimeout(function(){$("st").innerHTML='<div class="card"><div class="q">¡Ronda 1 completa! 🎉</div><button class="bx" id="go">Ir a la ronda 2</button></div>';$("go").onclick=r2},500)}
+  else{b.classList.add("shake");setTimeout(function(){b.classList.remove("shake")},350);$("fb").textContent="Esa no es su equivalente. Intenta otra.";$("fb").className="fb bad"}}
+ mk("L",L,0);mk("R",R,1)}
+function r2(){round=2;head();var q=sh(C),i=0,done;$("pb").style.width="33%";
+ function show(){var c=q[i];$("st").innerHTML='<div class="card"><div class="tag">Ronda 2 · '+c[0]+' · '+(i+1)+'/'+q.length+'</div><div class="q">'+c[1]+'</div><div class="row"><button class="big bs" id="a0">Es de SQL</button><button class="big bn" id="a1">Es de NoSQL</button></div><div class="fb" id="fb"></div><div class="row"><button class="bx" id="nx" hidden>Siguiente</button></div></div>';done=false;
+  [0,1].forEach(function(v){$("a"+v).onclick=function(){if(done)return;done=true;var ok=c[2]===v;if(ok)pts+=5;head();$("fb").textContent=ok?"¡Correcto!":"Incorrecto. Era "+(c[2]?"NoSQL":"SQL");$("fb").className="fb "+(ok?"ok":"bad");$("a0").disabled=$("a1").disabled=true;$("nx").hidden=false;$("nx").textContent=i==q.length-1?"Ir a la ronda 3":"Siguiente"}});
+  $("nx").onclick=function(){i++;$("pb").style.width=(33+i/q.length*33)+"%";if(i<q.length)show();else r3()}}
+ show()}
+function r3(){round=3;head();var i=0,q=sh(T),done;
+ function show(){var c=q[i];$("st").innerHTML='<div class="card"><div class="tag">Ronda 3 · Traduce a MongoDB · '+(i+1)+'/'+q.length+'</div><div class="q"><code>'+c[0]+'</code></div><p class="s">¿Cuál es su equivalente en MongoDB?</p><div id="op"></div><div class="fb" id="fb"></div><div class="row"><button class="bx" id="nx" hidden>Siguiente</button></div></div>';done=false;
+  sh([c[1]].concat(c[2])).forEach(function(o){var b=document.createElement("button");b.className="opt";b.innerHTML="<code>"+o+"</code>";b.onclick=function(){if(done)return;done=true;var ok=o===c[1];b.classList.add(ok?"good":"wrong");if(ok)pts+=10;else[].forEach.call($("op").children,function(x){if(x.textContent===c[1])x.classList.add("good")});head();$("fb").textContent=ok?"¡Correcto!":"Incorrecto. La correcta está en verde.";$("fb").className="fb "+(ok?"ok":"bad");$("nx").hidden=false;$("nx").textContent=i==q.length-1?"Ver resultado":"Siguiente"};$("op").appendChild(b)});
+  $("nx").onclick=function(){i++;$("pb").style.width=(66+i/q.length*34)+"%";if(i<q.length)show();else end()}}
+ show()}
+function end(){head();$("pb").style.width="100%";var max=P.length*10+C.length*5+T.length*10;
+ $("st").innerHTML='<div class="card"><div class="tag">Resultado final</div><div class="q">Obtuvo '+pts+' de '+max+' puntos ('+Math.round(pts/max*100)+'%)</div><div class="wrap"><table><tr><th>Aspecto</th><th>SQL</th><th>NoSQL</th></tr><tr><td>Modelo de datos</td><td>Tablas y filas</td><td>Documentos, clave-valor, columnas, grafos</td></tr><tr><td>Esquema</td><td>Rígido</td><td>Flexible</td></tr><tr><td>Escalabilidad</td><td>Vertical</td><td>Horizontal</td></tr><tr><td>Garantías</td><td>ACID</td><td>BASE</td></tr><tr><td>Lenguaje</td><td>SQL</td><td>Propio del motor (find, insertOne...)</td></tr><tr><td>Casos y motores</td><td>Banca: MySQL, PostgreSQL, Oracle</td><td>Redes sociales, big data: MongoDB, Redis, Cassandra</td></tr></table></div><div class="row"><button class="bx" id="rs">Jugar de nuevo</button></div></div>';$("rs").onclick=start}
+start();
+</script></main></body></html>
